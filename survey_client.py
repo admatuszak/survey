@@ -15,7 +15,6 @@ file = 'survey_db.pkl'
 date_format = '%m/%d/%Y'
 time_format = '%m/%d/%Y %I:%M %p'
 
-
 def main():
     st.title("Monika's Prentice Survey Tool")
     st.sidebar.header("Main Menu")
@@ -24,11 +23,24 @@ def main():
     #Need to figure out how to prevent __init__ from getting called every time an element is updated
     survey_instance = Survey_Instance(session)
     create_actions(survey_instance, session)
+    
+def create_menu_choices(session):
+    menu_choices = ['Select User Class', 'Take Survey', 'Load Completed Survey', 'Reporting']
+    if session.user_class == 'Student':
+        menu_choices.remove('Load Completed Survey')
+        menu_choices.remove('Reporting')
+    return menu_choices
        
 def create_actions(survey_instance, session):
-    main_menu = st.sidebar.selectbox('Choose from actions below', 
-                                     ['Administer New Survey', 'Load Completed Survey', 'Reporting']) 
-    if main_menu== 'Reporting':
+    menu_choices = create_menu_choices(session)
+    
+    main_menu = st.sidebar.selectbox('Choose from actions below', menu_choices) 
+    
+    if main_menu=='Select User Class':
+        session.user_class = st.selectbox('Choose your user level below', ['Student', 'Teacher', 'Admin'])
+        auth = st.text_input('Please authenticate')
+        provide_status(survey_instance)
+    elif main_menu == 'Reporting':
         st.write('Placeholder for analysis tab')
     elif main_menu == 'Load Completed Survey':
         #Maybe this shouldn't be in the same class as survey_instance
@@ -129,7 +141,7 @@ def create_actions(survey_instance, session):
         
             
             
-    elif main_menu == 'Administer New Survey':
+    elif main_menu == 'Take Survey':
         st.sidebar.subheader('Survey Actions')
         
         #Put reset button higher than create_survey function so that it overwrites the survey display with new session key
@@ -142,21 +154,27 @@ def create_actions(survey_instance, session):
         if st.sidebar.button('Save Survey'):
             survey_instance.save_survey()
         
-        st.sidebar.subheader('Status')          
-        
-        survey_instance.saved_status()
-        st.sidebar.markdown('* You are **editing** the survey for '+survey_instance.survey_answers['Student'][0])
-        st.sidebar.markdown('* The survey **'+survey_instance.saved_verb+'** been saved.')
-        st.sidebar.markdown('* You may save the survey for *'+survey_instance.survey_answers['Student'][0]+ \
-                            '* as many times as you would like. However, please remember to click the **Reset / New Survey** button above if you want to begin creating a new survey for another student.')
+        provide_status(survey_instance, mode='edit')      
         
         #This is just a shortcut for the session id, which sits in the survey_instance object
         session_key = survey_instance.session.session_id
                    
         if st.checkbox('Show the current survey details', key=session_key):
             survey_instance.show_survey()
+    
+    
         
-
+def provide_status(instance, mode='base'):
+    st.sidebar.subheader('Status')
+    st.sidebar.markdown('User Class: *' + instance.session.user_class + '*')
+    
+    instance.saved_status()
+    if mode=='edit':
+        st.sidebar.markdown('* You are **editing** the survey for '+instance.survey_answers['Student'][0])
+        st.sidebar.markdown('* The survey **'+instance.saved_verb+'** been saved.')
+        st.sidebar.markdown('* You may save the survey for *'+instance.survey_answers['Student'][0]+ \
+                            '* as many times as you would like. However, please remember to click the **Reset / New Survey** button above if you want to begin creating a new survey for another student.')
+    
 def select_student_to_load(db):
     student = st.selectbox('Choose a student', db['Student'].unique())
     return student
@@ -199,11 +217,15 @@ def open_survey_db():
 class MyState:
     session_id: int
     survey_id: str
+    user_class: str
     saved_status: bool
 
 def setup() -> MyState:
     print('Running setup')
-    return MyState(session_id=0, survey_id=str(uuid.uuid4()), saved_status=False)
+    return MyState(session_id=0, 
+                   survey_id=str(uuid.uuid4()), 
+                   user_class='Student',
+                   saved_status=False)
 
 
 

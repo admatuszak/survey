@@ -24,6 +24,7 @@ class Survey_Instance():
     def create_survey(self):
         st.write('In create_survey session ID: ', self.session.session_id)
         st.write('In create_survey survey ID:', self.session.survey_id)
+        st.write('In create_survey user class:', self.session.user_class)
         self.reset_button = st.empty()
         self.open_shelf()
         self.create_grade_list()
