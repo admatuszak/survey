@@ -132,19 +132,23 @@ def create_actions(survey_instance, session):
     elif main_menu == 'Administer New Survey':
         st.sidebar.subheader('Survey Actions')
         
-        survey_instance.configure_survey()
-        
-        
         #Put reset button higher than create_survey function so that it overwrites the survey display with new session key
         if st.sidebar.button('Reset / New Survey'):
             survey_instance.new_survey()
         
-        #Create and display the survey before the save_survey function so user can save work in progress without resetting
         st.write("Survey Version", survey_instance.version)
         survey_instance.create_survey()
         
         if st.sidebar.button('Save Survey'):
             survey_instance.save_survey()
+        
+        st.sidebar.subheader('Status')          
+        
+        survey_instance.saved_status()
+        st.sidebar.markdown('* You are **editing** the survey for '+survey_instance.survey_answers['Student'][0])
+        st.sidebar.markdown('* The survey **'+survey_instance.saved_verb+'** been saved.')
+        st.sidebar.markdown('* You may save the survey for *'+survey_instance.survey_answers['Student'][0]+ \
+                            '* as many times as you would like. However, please remember to click the **Reset / New Survey** button above if you want to begin creating a new survey for another student.')
         
         #This is just a shortcut for the session id, which sits in the survey_instance object
         session_key = survey_instance.session.session_id
@@ -194,11 +198,12 @@ def open_survey_db():
 @dataclass
 class MyState:
     session_id: int
-    survey_id: hex
+    survey_id: str
+    saved_status: bool
 
 def setup() -> MyState:
     print('Running setup')
-    return MyState(session_id=0, survey_id=str(uuid.uuid4()))
+    return MyState(session_id=0, survey_id=str(uuid.uuid4()), saved_status=False)
 
 
 

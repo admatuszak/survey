@@ -1,0 +1,5 @@
+'teacher_list', (0, 39)
+'subject_list', (512, 47)
+'student_list', (1024, 56)
+'question_list', (1536, 1123)
+'available_categories', (3072, 59)
