@@ -38,8 +38,9 @@ def create_actions(survey_instance, session):
     
     if main_menu=='Select User Class':
         session.user_class = st.selectbox('Choose your user level below', ['Student', 'Teacher', 'Admin'])
-        auth = st.text_input('Please authenticate')
-        provide_status(survey_instance)
+        survey_instance.authenticate()
+        survey_instance.provide_status()
+        
     elif main_menu == 'Reporting':
         st.write('Placeholder for analysis tab')
     elif main_menu == 'Load Completed Survey':
@@ -154,26 +155,13 @@ def create_actions(survey_instance, session):
         if st.sidebar.button('Save Survey'):
             survey_instance.save_survey()
         
-        provide_status(survey_instance, mode='edit')      
+        survey_instance.provide_status(mode='edit')      
         
         #This is just a shortcut for the session id, which sits in the survey_instance object
         session_key = survey_instance.session.session_id
                    
         if st.checkbox('Show the current survey details', key=session_key):
             survey_instance.show_survey()
-    
-    
-        
-def provide_status(instance, mode='base'):
-    st.sidebar.subheader('Status')
-    st.sidebar.markdown('User Class: *' + instance.session.user_class + '*')
-    
-    instance.saved_status()
-    if mode=='edit':
-        st.sidebar.markdown('* You are **editing** the survey for '+instance.survey_answers['Student'][0])
-        st.sidebar.markdown('* The survey **'+instance.saved_verb+'** been saved.')
-        st.sidebar.markdown('* You may save the survey for *'+instance.survey_answers['Student'][0]+ \
-                            '* as many times as you would like. However, please remember to click the **Reset / New Survey** button above if you want to begin creating a new survey for another student.')
     
 def select_student_to_load(db):
     student = st.selectbox('Choose a student', db['Student'].unique())
@@ -218,6 +206,8 @@ class MyState:
     session_id: int
     survey_id: str
     user_class: str
+    user: str
+    auth_status: bool
     saved_status: bool
 
 def setup() -> MyState:
@@ -225,6 +215,8 @@ def setup() -> MyState:
     return MyState(session_id=0, 
                    survey_id=str(uuid.uuid4()), 
                    user_class='Student',
+                   user = 'Not Logged In',
+                   auth_status=False,
                    saved_status=False)
 
 
