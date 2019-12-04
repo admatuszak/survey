@@ -25,7 +25,7 @@ def main():
     create_actions(survey_instance, session)
     
 def create_menu_choices(session):
-    menu_choices = ['Select User Class', 'Take Survey', 'Load Completed Survey', 'Reporting']
+    menu_choices = ['Log In', 'Take Survey', 'Load Completed Survey', 'Reporting', 'User Administration']
     if session.user_class == 'Student':
         menu_choices.remove('Load Completed Survey')
         menu_choices.remove('Reporting')
@@ -33,14 +33,11 @@ def create_menu_choices(session):
        
 def create_actions(survey_instance, session):
     menu_choices = create_menu_choices(session)
-    
     main_menu = st.sidebar.selectbox('Choose from actions below', menu_choices) 
-    
-    if main_menu=='Select User Class':
-        session.user_class = st.selectbox('Choose your user level below', ['Student', 'Teacher', 'Admin'])
+    if main_menu=='Log In':
+        session.user_class = st.selectbox('Choose your role below', ['Student', 'Teacher', 'Admin'])
         survey_instance.authenticate()
         survey_instance.provide_status()
-        
     elif main_menu == 'Reporting':
         st.write('Placeholder for analysis tab')
     elif main_menu == 'Load Completed Survey':
@@ -162,6 +159,23 @@ def create_actions(survey_instance, session):
                    
         if st.checkbox('Show the current survey details', key=session_key):
             survey_instance.show_survey()
+    
+    elif main_menu == 'User Administration':
+        st.sidebar.subheader('Actions')
+        user_admin_action = st.sidebar.selectbox('Actions', 
+                                                 ['List Users','Add User', 'Delete User', 
+                                                  'Reset User or their Password'])
+        survey_instance.provide_status()
+        
+        if user_admin_action == 'List Users':
+            survey_instance.list_users_from_directory()
+        elif user_admin_action == 'Add User':
+            survey_instance.add_user()
+        elif user_admin_action == 'Delete User':
+            survey_instance.delete_user()
+        elif user_admin_action == 'Reset User or their Password':
+            survey_instance.reset_user()
+        
     
 def select_student_to_load(db):
     student = st.selectbox('Choose a student', db['Student'].unique())
